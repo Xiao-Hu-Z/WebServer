@@ -53,16 +53,16 @@
 * 修改main.c中的数据库初始化信息
 
     ```C++
-    // root root修改为服务器数据库的登录名和密码
+    // root 123修改为服务器数据库的登录名和密码
 	// qgydb修改为上述创建的yourdb库名
-    connPool->init("localhost", "root", "root", "yourdb", 3306, 8);
+    connPool->init("localhost", "root", "123", "yourdb", 3306, 8);
     ```
 
 * 修改http_conn.cpp中的root路径
 
     ```C++
 	// 修改为root文件夹所在路径
-    const char* doc_root="/home/qgy/TinyWebServer/root";
+    const char* doc_root="/home/xiaohu/文档/WebServer/root";
     ```
 
 * 生成server
@@ -82,16 +82,6 @@
     ```C++
     ip:port
     ```
-
-
-
-
-
-
-
-
-
-
 
 
 
