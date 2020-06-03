@@ -2,7 +2,7 @@
 
 
 
-# Linux下C++搭建的轻量级Web服务器
+# Linux下C++搭建的Web服务器
 
 ## 说明
 
@@ -14,6 +14,19 @@
 * 通过访问服务器数据库实现web端用户**注册、登录**功能，可以请求服务器**图片和视频文件**
 * 实现**同步/异步日志系统**，记录服务器运行状态
 * 经Webbench压力测试可以实现**上万的并发连接**数据交换
+
+## 框架
+
+ ![image1](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/frame.jpg)
+
+
+
+
+
+
+## Demo
+
+## ![image2](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/demo.gif)
 
 ## 基础测试
 
@@ -76,6 +89,14 @@
 
 
 
-## Demo
 
-## ![image](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/demo.gif)
+
+
+
+
+
+
+
+参考：
+
+Linux高性能服务器编程，游双著.
