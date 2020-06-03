@@ -20,6 +20,7 @@
 #define MAX_EVENT_NUMBER 10000 //最大事件数
 #define TIMESLOT 5             //最小超时单位
 
+//条件编译
 #define SYNSQL //同步数据库校验
 //#define CGISQLPOOL    //CGI数据库校验
 #define SYNLOG //同步写日志
@@ -62,10 +63,13 @@ void addsig(int sig, void(handler)(int), bool restart = true)
     assert(sigaction(sig, &sa, NULL) != -1);
 }
 
-//定时处理任务，重新定时以不断触发SIGALRM信号
+
+//处理非活动链接的信号处理函数
 void timer_handler()
 {
+    //定时处理任务，重新定时以不断触发SIGALRM信号
     timer_lst.tick();
+    //一次alarm调用只会引起一次SIGALRM信号，所以要重新定时，以不断触发SIGALRM信号
     alarm(TIMESLOT);
 }
 
@@ -105,7 +109,9 @@ int main(int argc, char *argv[])
     }
 
     int port = atoi(argv[1]);
-
+   
+    /*若client端已经关闭，继续对其进行write操作，会产生SIGPIPE信号，导致进程退出
+    为了避免进程退出, 可以捕获SIGPIPE信号, 或者忽略它, 给它设置SIG_IGN信号处理函数*/
     addsig(SIGPIPE, SIG_IGN);
 
     //创建数据库连接池
@@ -123,6 +129,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    //预先为每个可能的客户连接分配一个http_conn对象
     http_conn *users = new http_conn[MAX_FD];
     assert(users);
 
@@ -139,6 +146,7 @@ int main(int argc, char *argv[])
  
     int listenfd = socket(PF_INET, SOCK_STREAM, 0);
     assert(listenfd >= 0);
+
 
     //struct linger tmp={1,0};
     //SO_LINGER若有数据待发送，延迟关闭
@@ -205,6 +213,7 @@ int main(int argc, char *argv[])
             {
                 struct sockaddr_in client_address;
                 socklen_t client_addrlength = sizeof(client_address);
+//当标识符已经被定义过(一般是用#define命令定义)，则对程序段LT进行编译，否则编译程序段ET
 #ifdef LT
                 int connfd = accept(listenfd, (struct sockaddr *)&client_address, &client_addrlength);
                 if (connfd < 0)
@@ -265,7 +274,8 @@ int main(int argc, char *argv[])
                 continue;
 #endif
             }
-
+            
+            //关闭连接、挂起、错误
             else if (events[i].events & (EPOLLRDHUP | EPOLLHUP | EPOLLERR))
             {
                 //服务器端关闭连接，移除对应的定时器
@@ -300,6 +310,7 @@ int main(int argc, char *argv[])
                         {
                         case SIGALRM:
                         {
+                         //用timeout变量标记定时任务需要处理，补立即处理任务，优先处理其他更重要事物
                             timeout = true;
                             break;
                         }
@@ -343,6 +354,7 @@ int main(int argc, char *argv[])
                     }
                 }
             }
+            //处理客户连接上有数据可写
             else if (events[i].events & EPOLLOUT)
             {
                 util_timer *timer = users_timer[sockfd].timer;
@@ -372,8 +384,11 @@ int main(int argc, char *argv[])
                 }
             }
         }
+        //最后处理定时事件，因为I/O事件有更高优先级，这样会导致定时任务不能精确按照预期的时间执行
         if (timeout)
         {
+            //信号处理函数，定时处理任务tick，多任务重新定时以不断触发SIGALRM信号
+            //tick（）：到达超时时间执行任务回调函数cb_func（），删除非活动连接在socket上的注册事件，并关闭
             timer_handler();
             timeout = false;
         }

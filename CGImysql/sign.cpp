@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
         cout << "Error:" << mysql_error(con);
         exit(1);
     }
-    con = mysql_real_connect(con, "localhost", "root", "root", "qgydb", 3306, NULL, 0);
+    con = mysql_real_connect(con, "localhost", "123", "root", "yourdb", 3306, NULL, 0);
 
     if (con == NULL)
     {

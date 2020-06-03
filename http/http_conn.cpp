@@ -28,12 +28,13 @@ const char *error_500_title = "Internal Error";
 const char *error_500_form = "There was an unusual problem serving the request file.\n";
 
 //当浏览器出现连接重置时，可能是网站根目录出错或http响应格式出错或者访问的文件中内容完全为空
-const char *doc_root = "/home/xiaohu/TCP IP/TinyWebServer-master/raw_version/root";
+const char *doc_root = "/home/xiaohu/文档/WebServer/root";
 
 //将表中的用户名和密码放入map
 map<string, string> users;
 
 #ifdef SYNSQL
+
 
 void http_conn::initmysql_result(connection_pool *connPool)
 {
@@ -48,15 +49,16 @@ void http_conn::initmysql_result(connection_pool *connPool)
     }
 
     //从表中检索完整的结果集
+    //将查询的全部结果读取到客户端，分配1个MYSQL_RES结构，并将结果置于该结构中
     MYSQL_RES *result = mysql_store_result(mysql);
 
     //返回结果集中的列数
     int num_fields = mysql_num_fields(result);
 
-    //返回所有字段结构的数组
+    //返回结果集中代表字段（列）的对象的数组
     MYSQL_FIELD *fields = mysql_fetch_fields(result);
 
-    //从结果集中获取下一行，将对应的用户名和密码，存入map中
+    //从结果集中会返回下一个字符串数组的地址，将对应的用户名和密码，存入map中
     while (MYSQL_ROW row = mysql_fetch_row(result))
     {
         string temp1(row[0]);
@@ -71,6 +73,7 @@ void http_conn::initmysql_result(connection_pool *connPool)
 
 void http_conn::initresultFile(connection_pool *connPool)
 {
+    //写操作
     ofstream out("./CGImysql/id_passwd.txt");
     //先从连接池中取一个连接
     MYSQL *mysql = NULL;
@@ -114,7 +117,10 @@ int setnonblocking(int fd)
     return old_option;
 }
 
-//将内核事件表注册读事件，ET模式，选择开启EPOLLONESHOT
+/*一个socket连接在任一时刻都只被一个线程处理，可使用epoll的EPOLLONESHOT事件
+注册了EPOLLONESHOT事件的文件描述符，操作系统最多触发其上注册的一个可读、可写或者异常事件，且只触发一次
+将fd上的EPOLLIN、EPOLLET和EPOLLRDHUP事件注册到epollfd指示的epoll内核时间表中
+参数one_shot指定是否注册fd上的EPOLLONESHOT事件*/
 void addfd(int epollfd, int fd, bool one_shot)
 {
     epoll_event event;
@@ -134,7 +140,7 @@ void addfd(int epollfd, int fd, bool one_shot)
     setnonblocking(fd);
 }
 
-//从内核时间表删除描述符
+//从epollfd标识的epoll内核事件表中删除fd上的所有注册事件
 void removefd(int epollfd, int fd)
 {
     epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, 0);
@@ -178,6 +184,7 @@ void http_conn::init(int sockfd, const sockaddr_in &addr)
     m_sockfd = sockfd;
     m_address = addr;
     //int reuse=1;
+    //设置socket文件描述符的属性,SO_REUSEADDR:重置本地地址
     //setsockopt(m_sockfd,SOL_SOCKET,SO_REUSEADDR,&reuse,sizeof(reuse));
     addfd(m_epollfd, sockfd, true);
     m_user_count++;
@@ -191,20 +198,32 @@ void http_conn::init()
     mysql = NULL;
     bytes_to_send = 0;
     bytes_have_send = 0;
+    //check_state默认为分析请求行状态
     m_check_state = CHECK_STATE_REQUESTLINE;
+    //HTTP请求是否保持连接
     m_linger = false;
+    //请求方法
     m_method = GET;
+    //客户端请求的目标文件的文件名
     m_url = 0;
+    //HTTP协议版本号，仅支持HTTP/1.1
     m_version = 0;
+    //HTTP请求请求消息体的长度
     m_content_length = 0;
+    //主机名
     m_host = 0;
+    //当前正在解析的行的起始位置
     m_start_line = 0;
+    //当前正在分析的字符在读缓冲区中的位置
     m_checked_idx = 0;
+    //标识缓冲区已经读入的客户数据的最后一个字节的下一位置
     m_read_idx = 0;
+    //写缓冲区待发送的字节数
     m_write_idx = 0;
-    cgi = 0;
-    memset(m_read_buf, '\0', READ_BUFFER_SIZE);
-    memset(m_write_buf, '\0', WRITE_BUFFER_SIZE);
+    cgi = 0;//启用的POST，cgi=1,未启用POST,cgi=0
+    memset(m_read_buf, '\0', READ_BUFFER_SIZE);//读缓冲区
+    memset(m_write_buf, '\0', WRITE_BUFFER_SIZE);//写缓冲区
+    //客户端请求的完整路径，其内容为doc_root+m_url,doc_root是网站根目录
     memset(m_real_file, '\0', FILENAME_LEN);
 }
 
@@ -218,8 +237,10 @@ http_conn::LINE_STATUS http_conn::parse_line()
         temp = m_read_buf[m_checked_idx];
         if (temp == '\r')
         {
+            //如果当前的字符是”\r"，即回车符，则可能读到一个完整的行
             if ((m_checked_idx + 1) == m_read_idx)
                 return LINE_OPEN;
+            //如果下一个字符是“\n",则说明成功读取到一个完整的行
             else if (m_read_buf[m_checked_idx + 1] == '\n')
             {
                 m_read_buf[m_checked_idx++] = '\0';
@@ -283,7 +304,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
         m_method = GET;
     else if (strcasecmp(method, "POST") == 0)
     {
-        m_method = POST;
+        m_method = POST;//HTTP请求采用POST方式
         cgi = 1;
     }
     else
@@ -305,6 +326,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     if (strncasecmp(m_url, "https://", 8) == 0)
     {
         m_url += 8;
+        //在参数 str 所指向的字符串中搜索第一次出现字符 c（一个无符号字符）的位置
         m_url = strchr(m_url, '/');
     }
 
@@ -359,7 +381,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text)
     return NO_REQUEST;
 }
 
-//判断http请求是否被完整读入
+//没有真正解析HTTP请求的消息体，只是判断他是否被完整的读入
 http_conn::HTTP_CODE http_conn::parse_content(char *text)
 {
     if (m_read_idx >= (m_content_length + m_checked_idx))
@@ -372,19 +394,22 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text)
     return NO_REQUEST;
 }
 
-//
+//主状态机
 http_conn::HTTP_CODE http_conn::process_read()
 {
-    LINE_STATUS line_status = LINE_OK;
-    HTTP_CODE ret = NO_REQUEST;
+    LINE_STATUS line_status = LINE_OK;//记录当前的读取状态
+    HTTP_CODE ret = NO_REQUEST;//记录HTTP请求的处理结果
     char *text = 0;
 
     while ((m_check_state == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
     {
+        //char *get_line() { return m_read_buf + m_start_line; };
+        //m_start_line：当前正在解析行的起始位置
         text = get_line();
         m_start_line = m_checked_idx;
         LOG_INFO("%s", text);
         Log::get_instance()->flush();
+        //m_check_state:主状态机当前的状态
         switch (m_check_state)
         {
         case CHECK_STATE_REQUESTLINE:
@@ -420,11 +445,15 @@ http_conn::HTTP_CODE http_conn::process_read()
     return NO_REQUEST;
 }
 
+/*当得到一完整的HTTP请求时，就分析目标文件的属性
+如果目标文件存在，对所有用户可读，且不是目录
+则使用mmap将其映射到内存地址m_file_address处，并告诉调用者获取文件成功*/
 http_conn::HTTP_CODE http_conn::do_request()
 {
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     //printf("m_url:%s\n", m_url);
+    //char *strrchr(const char *str, int c) 在参数 str 所指向的字符串中搜索最后一次出现字符 c（一个无符号字符）的位置
     const char *p = strrchr(m_url, '/');
 
     //处理cgi
@@ -474,6 +503,7 @@ http_conn::HTTP_CODE http_conn::do_request()
             {
 
                 pthread_mutex_lock(&lock);
+                //查询是否有用户名和密码
                 int res = mysql_query(mysql, sql_insert);
                 users.insert(pair<string, string>(name, password));
                 pthread_mutex_unlock(&lock);

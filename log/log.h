@@ -60,7 +60,8 @@ private:
     locker m_mutex;
 };
 
-
+//这四个宏定义在其他文件中使用，主要用于不同类型(DEBUG，INFO，WARN和ERROR)的日志输出
+//日志类中的方法都不会被其他程序直接调用，末尾的四个可变参数宏提供了其他程序的调用方法
 #define LOG_DEBUG(format, ...) Log::get_instance()->write_log(0, format, ##__VA_ARGS__)
 #define LOG_INFO(format, ...) Log::get_instance()->write_log(1, format, ##__VA_ARGS__)
 #define LOG_WARN(format, ...) Log::get_instance()->write_log(2, format, ##__VA_ARGS__)
