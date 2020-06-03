@@ -17,7 +17,7 @@
 
 ## 框架
 
- ![image1](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/frame.jpg)
+ ![image1](https://github.com/Xiao-Hu-Z/WebServer/blob/master/root/frame.jpg)
 
 
 
@@ -26,7 +26,7 @@
 
 ## Demo
 
-## ![image2](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/demo.gif)
+## ![image2](https://github.com/Xiao-Hu-Z/WebServer/blob/master/root/demo.gif)
 
 ## 基础测试
 
