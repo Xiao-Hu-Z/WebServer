@@ -78,4 +78,4 @@
 
 ## Demo
 
-![0](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/demo.gif)
+## ![image](https://github.com/Xiao-Hu-Z/Tiny-WebServer/blob/master/root/demo.gif)
