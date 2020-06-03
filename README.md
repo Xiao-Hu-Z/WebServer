@@ -15,9 +15,7 @@
 * 实现**同步/异步日志系统**，记录服务器运行状态
 * 经Webbench压力测试可以实现**上万的并发连接**数据交换
 
-## 框架
 
- ![image1](https://github.com/Xiao-Hu-Z/WebServer/blob/master/root/frame.jpg)
 
 
 
