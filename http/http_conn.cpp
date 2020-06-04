@@ -148,6 +148,12 @@ void removefd(int epollfd, int fd)
 }
 
 //将事件重置为EPOLLONESHOT
+//EPOLL_CTL_MOD：更改注册的文件描述符的关注事件发生情况
+/*
+EPOLLET：ET边沿触发，只能被触发一次
+EPOLLONESHOT:只能被一个线程处理
+EPOLLRDHUP：TCP连接被关闭，或者对方关闭了写操作，它由GUN引入
+*/
 void modfd(int epollfd, int fd, int ev)
 {
     epoll_event event;
@@ -394,7 +400,7 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text)
     return NO_REQUEST;
 }
 
-//主状态机
+//主状态机，服务器处理HTTP的请求结果
 http_conn::HTTP_CODE http_conn::process_read()
 {
     LINE_STATUS line_status = LINE_OK;//记录当前的读取状态
@@ -810,12 +816,15 @@ bool http_conn::write()
     }
 }
 
+//往缓冲区写入待发送的数据
 bool http_conn::add_response(const char *format, ...)
 {
     if (m_write_idx >= WRITE_BUFFER_SIZE)
         return false;
+    //VA_LIST 是在C语言中解决变参问题的一组宏，变参问题是指参数的个数不定，可以是传入一个参数也可以是多个
     va_list arg_list;
     va_start(arg_list, format);
+    //如果成功调用此函数，返回写到buffer中的字符的个数（不包括结尾的'\0'）
     int len = vsnprintf(m_write_buf + m_write_idx, WRITE_BUFFER_SIZE - 1 - m_write_idx, format, arg_list);
     if (len >= (WRITE_BUFFER_SIZE - 1 - m_write_idx))
     {
@@ -828,36 +837,52 @@ bool http_conn::add_response(const char *format, ...)
     Log::get_instance()->flush();
     return true;
 }
+
+//响应报文的状态行：版本+状态码+短语+CRLF，status状态码
 bool http_conn::add_status_line(int status, const char *title)
 {
     return add_response("%s %d %s\r\n", "HTTP/1.1", status, title);
 }
+
+//响应报文消息体
 bool http_conn::add_headers(int content_len)
 {
     add_content_length(content_len);
     add_linger();
     add_blank_line();
 }
+
+//响应报文状态行
 bool http_conn::add_content_length(int content_len)
 {
     return add_response("Content-Length:%d\r\n", content_len);
 }
+//响应报文首部的内容类型
 bool http_conn::add_content_type()
 {
     return add_response("Content-Type:%s\r\n", "text/html");
 }
+//首部字段：m_linger:HTTP的请求保持连接
 bool http_conn::add_linger()
 {
     return add_response("Connection:%s\r\n", (m_linger == true) ? "keep-alive" : "close");
 }
+//首部字段加入空白行
 bool http_conn::add_blank_line()
 {
     return add_response("%s", "\r\n");
 }
+
+//报文主体（消息体）
 bool http_conn::add_content(const char *content)
 {
     return add_response("%s", content);
 }
+
+
+//HTTP_CODE:枚举类型，服务器处理HTTP的请求结果
+//根据服务器处理HTTP请求的结果，决定返回给客户端的内容
+//process_write返回true或false
 bool http_conn::process_write(HTTP_CODE ret)
 {
     switch (ret)
@@ -889,15 +914,21 @@ bool http_conn::process_write(HTTP_CODE ret)
     case FILE_REQUEST:
     {
         add_status_line(200, ok_200_title);
+        //m_file_stat:成员变量：目标文件（实体主体）的状态
         if (m_file_stat.st_size != 0)
         {
+            //首部行，添加描述文件的长度
+           /*
+           HTTP响应报文在内存中分两块，状态行+首部字段+空格被web服务器放置在一块内存中
+           而文档内容通常被读入到另一块内存中（通过mmap函数）
+           */
             add_headers(m_file_stat.st_size);
             m_iv[0].iov_base = m_write_buf;
-            m_iv[0].iov_len = m_write_idx;
-            m_iv[1].iov_base = m_file_address;
+            m_iv[0].iov_len = m_write_idx;//写缓冲区待发送的字节数
+            m_iv[1].iov_base = m_file_address;//客户端请求的文件被mmap到内存的起始位置
             m_iv[1].iov_len = m_file_stat.st_size;
-            m_iv_count = 2;
-            bytes_to_send = m_write_idx + m_file_stat.st_size;
+            m_iv_count = 2;//写内存块的数量
+            bytes_to_send = m_write_idx + m_file_stat.st_size;//发送的字节数
             return true;
         }
         else
@@ -911,23 +942,32 @@ bool http_conn::process_write(HTTP_CODE ret)
     default:
         return false;
     }
+    //响应报文没有消息实体没有
     m_iv[0].iov_base = m_write_buf;
     m_iv[0].iov_len = m_write_idx;
     m_iv_count = 1;
     bytes_to_send = m_write_idx;
     return true;
 }
+
+//由线程池中的工作线程调用，处理HTTP请求的入口函数
 void http_conn::process()
 {
+    //process_read()服务器处理HTTP的请求结果
     HTTP_CODE read_ret = process_read();
     if (read_ret == NO_REQUEST)
     {
+        //将文件描述符fd重置为EPOLLONESHOT
         modfd(m_epollfd, m_sockfd, EPOLLIN);
         return;
     }
+    //read_ret:服务器处理HTTP的请求结果
+    //根据服务器处理HTTP请求的结果，决定返回给客户端的内容
+    //process_write返回true或false
     bool write_ret = process_write(read_ret);
     if (!write_ret)
     {
+        //关闭连接，关闭一个连接，客户总量减一
         close_conn();
     }
     modfd(m_epollfd, m_sockfd, EPOLLOUT);
