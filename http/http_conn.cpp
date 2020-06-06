@@ -480,7 +480,7 @@ http_conn::HTTP_CODE http_conn::process_read()
 如果目标文件存在，对所有用户可读，且不是目录
 则使用mmap将其映射到内存地址m_file_address处，并告诉调用者获取文件成功*/
 http_conn::HTTP_CODE http_conn::do_request()
-{
+{   //m_real_file:客户端请求目标文件的完整路径
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     //printf("m_url:%s\n", m_url);
@@ -493,12 +493,13 @@ http_conn::HTTP_CODE http_conn::do_request()
     if (cgi == 1 && (*(p + 1) == '2' || *(p + 1) == '3'))
     {
 
-        //根据标志判断是登录检测还是注册检测
+        //根据标志判断注册进入，接着登录页面，还是已经账号登录进入，接着选择页面
         char flag = m_url[1];
 
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
         strcpy(m_url_real, "/");
-        strcat(m_url_real, m_url + 2);
+        /*char *strcat(char *dest, const char *src) 把 src 所指向的字符串追加到 dest 所指向的字符串的结尾*/
+        strcat(m_url_real, m_url + 2);//   *src:/+数字
         strncpy(m_real_file + len, m_url_real, FILENAME_LEN - len - 1);
         free(m_url_real);
 
@@ -545,7 +546,7 @@ http_conn::HTTP_CODE http_conn::do_request()
                     //查找到res为0，登录
                     strcpy(m_url, "/log.html");
                 else
-                    //查找到res为1，注册
+                    //查找到res为1，错误注册
                     strcpy(m_url, "/registerError.html");
             }
             else//被注册了
@@ -563,169 +564,9 @@ http_conn::HTTP_CODE http_conn::do_request()
 #endif
 
 
-//CGI多进程登录校验,用连接池,注册在父进程,登录在子进程
-#ifdef CGISQLPOOL
-
-        //注册
-        pthread_mutex_t lock;
-        pthread_mutex_init(&lock, NULL);
-
-        if (*(p + 1) == '3')
-        {
-            //如果是注册，先检测数据库中是否有重名的
-            //没有重名的，进行增加数据
-            char *sql_insert = (char *)malloc(sizeof(char) * 200);
-            strcpy(sql_insert, "INSERT INTO user(username, passwd) VALUES(");
-            strcat(sql_insert, "'");
-            strcat(sql_insert, name);
-            strcat(sql_insert, "', '");
-            strcat(sql_insert, password);
-            strcat(sql_insert, "')");
-
-            if (users.find(name) == users.end())
-            {
-                pthread_mutex_lock(&lock);
-                int res = mysql_query(mysql, sql_insert);
-                users.insert(pair<string, string>(name, password));
-                pthread_mutex_unlock(&lock);
-
-                if (!res)
-                {
-                    strcpy(m_url, "/log.html");
-                    pthread_mutex_lock(&lock);
-                    //每次都需要重新更新id_passwd.txt
-                    ofstream out("./CGImysql/id_passwd.txt", ios::app);
-                    out << name << " " << password << endl;
-                    out.close();
-                    pthread_mutex_unlock(&lock);
-                }
-                else
-                    strcpy(m_url, "/registerError.html");
-            }
-            else
-                strcpy(m_url, "/registerError.html");
-        }
-        //登录
-        else if (*(p + 1) == '2')
-        {
-            pid_t pid;
-            int pipefd[2];
-            if (pipe(pipefd) < 0)
-            {
-                LOG_ERROR("pipe() error:%d", 4);
-                return BAD_REQUEST;
-            }
-            if ((pid = fork()) < 0)
-            {
-                LOG_ERROR("fork() error:%d", 3);
-                return BAD_REQUEST;
-            }
-
-            if (pid == 0)
-            {
-                //标准输出，文件描述符是1，然后将输出重定向到管道写端
-                dup2(pipefd[1], 1);
-                //关闭管道的读端
-                close(pipefd[0]);
-                //父进程去执行cgi程序，m_real_file,name,password为输入
-                execl(m_real_file, name, password, "./CGImysql/id_passwd.txt", NULL);
-            }
-            else
-            {
-                //子进程关闭写端，打开读端，读取父进程的输出
-                close(pipefd[1]);
-                char result;
-                int ret = read(pipefd[0], &result, 1);
-
-                if (ret != 1)
-                {
-                    LOG_ERROR("管道read error:ret=%d", ret);
-                    return BAD_REQUEST;
-                }
-
-                LOG_INFO("%s", "登录检测");
-                Log::get_instance()->flush();
-                //当用户名和密码正确，则显示welcome界面，否则显示错误界面
-                if (result == '1')
-                    strcpy(m_url, "/welcome.html");
-                else
-                    strcpy(m_url, "/logError.html");
-
-                //回收进程资源
-                waitpid(pid, NULL, 0);
-            }
-        }
-#endif
-
-
-//CGI多进程登录校验,不用数据库连接池
-//子进程完成注册和登录
-#ifdef CGISQL
-        //fd[0]:读管道，fd[1]:写管道
-        pid_t pid;
-        int pipefd[2];
-        if (pipe(pipefd) < 0)
-        {
-            LOG_ERROR("pipe() error:%d", 4);
-            return BAD_REQUEST;
-        }
-        if ((pid = fork()) < 0)
-        {
-            LOG_ERROR("fork() error:%d", 3);
-            return BAD_REQUEST;
-        }
-
-        if (pid == 0)
-        {
-            //标准输出，文件描述符是1，然后将输出重定向到管道写端
-            dup2(pipefd[1],1);
-            //关闭管道的读端
-            close(pipefd[0]);
-            //父进程去执行cgi程序，m_real_file,name,password为输入
-            //./check.cgi name password
-            execl(m_real_file, &flag, name,password,NULL);
-        }
-        else
-        {
-            //子进程关闭写端，打开读端，读取父进程的输出
-            close(pipefd[1]);
-            char result;
-            int ret = read(pipefd[0], &result, 1);
-
-            if (ret != 1)
-            {
-                LOG_ERROR("管道read error:ret=%d", ret);
-                return BAD_REQUEST;
-            }
-            if (flag == '2')
-            {
-                //printf("登录检测\n");
-                LOG_INFO("%s", "登录检测");
-                Log::get_instance()->flush();
-                //当用户名和密码正确，则显示welcome界面，否则显示错误界面
-                if (result == '1')
-                    strcpy(m_url, "/welcome.html");
-                else
-                    strcpy(m_url, "/logError.html");
-            }
-            else if (flag == '3')
-            {
-                LOG_INFO("%s", "注册检测");
-                Log::get_instance()->flush();
-                //当成功注册后，则显示登陆界面，否则显示错误界面
-                if (result == '1')
-                    strcpy(m_url, "/log.html");
-                else
-                    strcpy(m_url, "/registerError.html");
-            }
-            //回收进程资源
-            waitpid(pid, NULL, 0);
-        }
-#endif
-
-
     }
-
+    
+    //注册页面
     if (*(p + 1) == '0')
     {
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
@@ -734,6 +575,7 @@ http_conn::HTTP_CODE http_conn::do_request()
 
         free(m_url_real);
     }
+    //登录页面
     else if (*(p + 1) == '1')
     {
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
@@ -742,6 +584,7 @@ http_conn::HTTP_CODE http_conn::do_request()
 
         free(m_url_real);
     }
+    //选择显示图片页面
     else if (*(p + 1) == '5')
     {
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
@@ -750,6 +593,7 @@ http_conn::HTTP_CODE http_conn::do_request()
 
         free(m_url_real);
     }
+    //选择显示视频页面
     else if (*(p + 1) == '6')
     {
         char *m_url_real = (char *)malloc(sizeof(char) * 200);
@@ -758,30 +602,35 @@ http_conn::HTTP_CODE http_conn::do_request()
 
         free(m_url_real);
     }
-    else if (*(p + 1) == '7')
-    {
-        char *m_url_real = (char *)malloc(sizeof(char) * 200);
-        strcpy(m_url_real, "/fans.html");
-        strncpy(m_real_file + len, m_url_real, strlen(m_url_real));
-
-        free(m_url_real);
-    }
     else
         strncpy(m_real_file + len, m_url, FILENAME_LEN - len - 1);
 
+
+    //stat获取文件信息成功返回0，失败-1
     if (stat(m_real_file, &m_file_stat) < 0)
         return NO_RESOURCE;
+    //禁止访问
     if (!(m_file_stat.st_mode & S_IROTH))
         return FORBIDDEN_REQUEST;
+    //目标文件是目录
     if (S_ISDIR(m_file_stat.st_mode))
         return BAD_REQUEST;
+    // O_RDONLY只读
     int fd = open(m_real_file, O_RDONLY);
-    m_file_address = (char *)mmap(0, m_file_stat.st_size, PROT_READ, MAP_PRIVATE, fd, 0);
+    /*mmap申请一段内存空间，将文件映射其中
+    *start:允许用户使用这个地址作为内存段的起始位置
+    length:内存段的长度
+    prot:PROT_READ:内存段可读
+    flags:MAP_PRIVATE:内存段为调用进程私有，对该内存段的修改不会反应到文件中
+    fd:被映射文件对应的文件描述符
+    offset:设置文件从何处开始映射
+    */
+    m_file_address = (char *)mmap(0, , PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd);
     return FILE_REQUEST;
 }
 
-
+//释放mmap创建映射内存空间
 void http_conn::unmap()
 {
     if (m_file_address)
@@ -790,13 +639,14 @@ void http_conn::unmap()
         m_file_address = 0;
     }
 }
-
+//非阻塞写操作
 bool http_conn::write()
 {
     int temp = 0;
 
     if (bytes_to_send == 0)
     {
+        //数据可读
         modfd(m_epollfd, m_sockfd, EPOLLIN);
         init();
         return true;
@@ -804,6 +654,7 @@ bool http_conn::write()
 
     while (1)
     {
+        //将多块分散的内存写入文件描述符m_sockfd，成功返回写入字节数
         temp = writev(m_sockfd, m_iv, m_iv_count);
 
         if (temp < 0)
@@ -819,9 +670,12 @@ bool http_conn::write()
 
         bytes_have_send += temp;
         bytes_to_send -= temp;
+        
         if (bytes_have_send >= m_iv[0].iov_len)
         {
+            //修改内存块1大小为0，修改内存块2
             m_iv[0].iov_len = 0;
+            //m_write_idx:写缓冲区待发送字节数
             m_iv[1].iov_base = m_file_address + (bytes_have_send - m_write_idx);
             m_iv[1].iov_len = bytes_to_send;
         }
@@ -857,7 +711,7 @@ bool http_conn::add_response(const char *format, ...)
     //VA_LIST 是在C语言中解决变参问题的一组宏，变参问题是指参数的个数不定，可以是传入一个参数也可以是多个
     va_list arg_list;
     va_start(arg_list, format);
-    //如果成功调用此函数，返回写到buffer中的字符的个数（不包括结尾的'\0'）
+    //如果成功调用此函数，返回写到m_write_buf中的字符的个数（不包括结尾的'\0'）
     int len = vsnprintf(m_write_buf + m_write_idx, WRITE_BUFFER_SIZE - 1 - m_write_idx, format, arg_list);
     if (len >= (WRITE_BUFFER_SIZE - 1 - m_write_idx))
     {
@@ -880,17 +734,20 @@ bool http_conn::add_status_line(int status, const char *title)
 //响应报文首部字段
 bool http_conn::add_headers(int content_len)
 {
-    add_content_length(content_len);
-    add_linger();
-    add_blank_line();
+//    add_content_length(content_len);
+//    add_linger();
+//    add_blank_line();
+
+    return add_content_length(content_len) && add_linger() &&
+           add_blank_line();
 }
 
-//响应报文首部字段，内容长度
+//响应报文首部字段的消息体长度
 bool http_conn::add_content_length(int content_len)
 {
     return add_response("Content-Length:%d\r\n", content_len);
 }
-//响应报文首部的内容类型
+//响应报文首部的内容的类型
 bool http_conn::add_content_type()
 {
     return add_response("Content-Type:%s\r\n", "text/html");
@@ -900,7 +757,7 @@ bool http_conn::add_linger()
 {
     return add_response("Connection:%s\r\n", (m_linger == true) ? "keep-alive" : "close");
 }
-//首部字段加入空白行
+//加入空白行
 bool http_conn::add_blank_line()
 {
     return add_response("%s", "\r\n");
