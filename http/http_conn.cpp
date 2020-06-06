@@ -625,7 +625,7 @@ http_conn::HTTP_CODE http_conn::do_request()
     fd:被映射文件对应的文件描述符
     offset:设置文件从何处开始映射
     */
-    m_file_address = (char *)mmap(0, , PROT_READ, MAP_PRIVATE, fd, 0);
+    m_file_address = (char *)mmap(0,m_file_stat.st_size , PROT_READ, MAP_PRIVATE, fd, 0);
     close(fd);
     return FILE_REQUEST;
 }
@@ -814,7 +814,7 @@ bool http_conn::process_write(HTTP_CODE ret)
            */
             add_headers(m_file_stat.st_size);
             m_iv[0].iov_base = m_write_buf;
-            m_iv[0].iov_len = m_write_idx;//写缓冲区待发送的字节数
+            m_iv[0].iov_len = m_write_idx;//m_write_idx:写缓冲区待发送的字节数
             m_iv[1].iov_base = m_file_address;//客户端请求的文件被mmap到内存的起始位置
             m_iv[1].iov_len = m_file_stat.st_size;
             m_iv_count = 2;//写内存块的数量
@@ -832,7 +832,7 @@ bool http_conn::process_write(HTTP_CODE ret)
     default:
         return false;
     }
-    //响应报文没有消息实体没有
+    //响应报文没有消息实体
     m_iv[0].iov_base = m_write_buf;
     m_iv[0].iov_len = m_write_idx;
     m_iv_count = 1;

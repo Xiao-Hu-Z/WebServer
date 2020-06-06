@@ -2179,3 +2179,213 @@ Connection:keep-alive
 2020-06-06 17:18:40.022669 [info]: timer tick
 2020-06-06 17:18:40.022860 [info]: close fd 16
 2020-06-06 17:18:40.022956 [info]: close fd 17
+2020-06-06 19:49:41.057382 [info]: deal with the client(127.0.0.1)
+2020-06-06 19:49:41.057723 [info]: POST /2CGISQL.cgi HTTP/1.1
+2020-06-06 19:49:41.057819 [info]: Host: localhost:3307
+2020-06-06 19:49:41.057844 [info]: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:41.057864 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:41.057881 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:41.057894 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:41.057908 [info]: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:41.057920 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:41.057935 [info]: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:41.057948 [info]: oop!unknow header: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:41.057962 [info]: Referer: http://localhost:3307/3CGISQL.cgi
+2020-06-06 19:49:41.057976 [info]: oop!unknow header: Referer: http://localhost:3307/3CGISQL.cgi
+2020-06-06 19:49:41.057988 [info]: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:41.057999 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:41.058011 [info]: Content-Length: 21
+2020-06-06 19:49:41.058028 [info]: Origin: http://localhost:3307
+2020-06-06 19:49:41.058041 [info]: oop!unknow header: Origin: http://localhost:3307
+2020-06-06 19:49:41.058054 [info]: Connection: keep-alive
+2020-06-06 19:49:41.058074 [info]: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:41.058086 [info]: oop!unknow header: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:41.058098 [info]: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:41.058111 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:41.058122 [info]: Cache-Control: max-age=0
+2020-06-06 19:49:41.058133 [info]: oop!unknow header: Cache-Control: max-age=0
+2020-06-06 19:49:41.058143 [info]: 
+2020-06-06 19:49:41.058153 [info]: user=345&password=345
+2020-06-06 19:49:41.058254 [info]: adjust timer once
+2020-06-06 19:49:41.058502 [info]: request:HTTP/1.1 200 OK
+
+2020-06-06 19:49:41.058554 [info]: request:HTTP/1.1 200 OK
+Content-Length:590
+
+2020-06-06 19:49:41.058571 [info]: request:HTTP/1.1 200 OK
+Content-Length:590
+Connection:keep-alive
+
+2020-06-06 19:49:41.058584 [info]: request:HTTP/1.1 200 OK
+Content-Length:590
+Connection:keep-alive
+
+
+2020-06-06 19:49:41.058945 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:41.058985 [info]: adjust timer once
+2020-06-06 19:49:42.848775 [info]: deal with the client(127.0.0.1)
+2020-06-06 19:49:42.848851 [info]: adjust timer once
+2020-06-06 19:49:42.848885 [info]: POST /5 HTTP/1.1
+2020-06-06 19:49:42.848946 [info]: Host: localhost:3307
+2020-06-06 19:49:42.848964 [info]: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:42.848982 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:42.848998 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:42.849017 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:42.849038 [info]: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:42.849050 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:42.849424 [info]: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:42.849479 [info]: oop!unknow header: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:42.849495 [info]: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:42.849505 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:42.849513 [info]: Content-Length: 0
+2020-06-06 19:49:42.849521 [info]: Origin: http://localhost:3307
+2020-06-06 19:49:42.849530 [info]: oop!unknow header: Origin: http://localhost:3307
+2020-06-06 19:49:42.849538 [info]: Connection: keep-alive
+2020-06-06 19:49:42.849546 [info]: Referer: http://localhost:3307/2CGISQL.cgi
+2020-06-06 19:49:42.849553 [info]: oop!unknow header: Referer: http://localhost:3307/2CGISQL.cgi
+2020-06-06 19:49:42.849561 [info]: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:42.849568 [info]: oop!unknow header: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:42.849577 [info]: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:42.849584 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:42.849592 [info]: 
+2020-06-06 19:49:42.849644 [info]: request:HTTP/1.1 200 OK
+
+2020-06-06 19:49:42.849668 [info]: request:HTTP/1.1 200 OK
+Content-Length:364
+
+2020-06-06 19:49:42.849678 [info]: request:HTTP/1.1 200 OK
+Content-Length:364
+Connection:keep-alive
+
+2020-06-06 19:49:42.849685 [info]: request:HTTP/1.1 200 OK
+Content-Length:364
+Connection:keep-alive
+
+
+2020-06-06 19:49:42.850106 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:42.850214 [info]: adjust timer once
+2020-06-06 19:49:42.901940 [info]: deal with the client(127.0.0.1)
+2020-06-06 19:49:42.902019 [info]: GET /ruiwen.jpg HTTP/1.1
+2020-06-06 19:49:42.902078 [info]: Host: localhost:3307
+2020-06-06 19:49:42.902100 [info]: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:42.902116 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:42.902130 [info]: Accept: image/webp,*/*
+2020-06-06 19:49:42.902143 [info]: oop!unknow header: Accept: image/webp,*/*
+2020-06-06 19:49:42.902157 [info]: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:42.902171 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:42.902184 [info]: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:42.902196 [info]: oop!unknow header: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:42.902208 [info]: Connection: keep-alive
+2020-06-06 19:49:42.902220 [info]: Referer: http://localhost:3307/5
+2020-06-06 19:49:42.902231 [info]: oop!unknow header: Referer: http://localhost:3307/5
+2020-06-06 19:49:42.902243 [info]: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:42.902255 [info]: oop!unknow header: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:42.902266 [info]: 
+2020-06-06 19:49:42.902312 [info]: request:HTTP/1.1 200 OK
+
+2020-06-06 19:49:42.902333 [info]: request:HTTP/1.1 200 OK
+Content-Length:40026
+
+2020-06-06 19:49:42.902346 [info]: request:HTTP/1.1 200 OK
+Content-Length:40026
+Connection:keep-alive
+
+2020-06-06 19:49:42.902357 [info]: request:HTTP/1.1 200 OK
+Content-Length:40026
+Connection:keep-alive
+
+
+2020-06-06 19:49:42.902378 [info]: adjust timer once
+2020-06-06 19:49:42.903276 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:42.903330 [info]: adjust timer once
+2020-06-06 19:49:44.761626 [info]: timer tick
+2020-06-06 19:49:44.801561 [info]: deal with the client(127.0.0.1)
+2020-06-06 19:49:44.801674 [info]: adjust timer once
+2020-06-06 19:49:44.801681 [info]: POST /6 HTTP/1.1
+2020-06-06 19:49:44.801744 [info]: Host: localhost:3307
+2020-06-06 19:49:44.801766 [info]: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:44.801778 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:44.801798 [info]: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:44.801810 [info]: oop!unknow header: Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8
+2020-06-06 19:49:44.801821 [info]: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:44.801832 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:44.801841 [info]: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:44.801847 [info]: oop!unknow header: Accept-Encoding: gzip, deflate
+2020-06-06 19:49:44.801853 [info]: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:44.801859 [info]: oop!unknow header: Content-Type: application/x-www-form-urlencoded
+2020-06-06 19:49:44.801865 [info]: Content-Length: 0
+2020-06-06 19:49:44.801871 [info]: Origin: http://localhost:3307
+2020-06-06 19:49:44.801877 [info]: oop!unknow header: Origin: http://localhost:3307
+2020-06-06 19:49:44.801883 [info]: Connection: keep-alive
+2020-06-06 19:49:44.801890 [info]: Referer: http://localhost:3307/2CGISQL.cgi
+2020-06-06 19:49:44.801896 [info]: oop!unknow header: Referer: http://localhost:3307/2CGISQL.cgi
+2020-06-06 19:49:44.801902 [info]: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:44.801908 [info]: oop!unknow header: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:44.801914 [info]: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:44.801920 [info]: oop!unknow header: Upgrade-Insecure-Requests: 1
+2020-06-06 19:49:44.801926 [info]: 
+2020-06-06 19:49:44.801956 [info]: request:HTTP/1.1 200 OK
+
+2020-06-06 19:49:44.801969 [info]: request:HTTP/1.1 200 OK
+Content-Length:395
+
+2020-06-06 19:49:44.801976 [info]: request:HTTP/1.1 200 OK
+Content-Length:395
+Connection:keep-alive
+
+2020-06-06 19:49:44.801982 [info]: request:HTTP/1.1 200 OK
+Content-Length:395
+Connection:keep-alive
+
+
+2020-06-06 19:49:44.802185 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:44.802203 [info]: adjust timer once
+2020-06-06 19:49:44.973555 [info]: deal with the client(127.0.0.1)
+2020-06-06 19:49:44.973625 [info]: adjust timer once
+2020-06-06 19:49:44.973632 [info]: GET /lizhi.mp4 HTTP/1.1
+2020-06-06 19:49:44.973702 [info]: Host: localhost:3307
+2020-06-06 19:49:44.973725 [info]: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:44.973737 [info]: oop!unknow header: User-Agent: Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:77.0) Gecko/20100101 Firefox/77.0
+2020-06-06 19:49:44.973746 [info]: Accept: video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5
+2020-06-06 19:49:44.973753 [info]: oop!unknow header: Accept: video/webm,video/ogg,video/*;q=0.9,application/ogg;q=0.7,audio/*;q=0.6,*/*;q=0.5
+2020-06-06 19:49:44.973761 [info]: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:44.973768 [info]: oop!unknow header: Accept-Language: zh-CN,zh;q=0.8,zh-TW;q=0.7,zh-HK;q=0.5,en-US;q=0.3,en;q=0.2
+2020-06-06 19:49:44.973775 [info]: Range: bytes=0-
+2020-06-06 19:49:44.973782 [info]: oop!unknow header: Range: bytes=0-
+2020-06-06 19:49:44.973789 [info]: Connection: keep-alive
+2020-06-06 19:49:44.973797 [info]: Referer: http://localhost:3307/6
+2020-06-06 19:49:44.973803 [info]: oop!unknow header: Referer: http://localhost:3307/6
+2020-06-06 19:49:44.973811 [info]: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:44.973818 [info]: oop!unknow header: Cookie: goSessionid=m7g9Sw657y0i_nMLqvIGkAuXS85xYxFmzv2nF_ZahHA%3D
+2020-06-06 19:49:44.973825 [info]: 
+2020-06-06 19:49:44.973858 [info]: request:HTTP/1.1 200 OK
+
+2020-06-06 19:49:44.973874 [info]: request:HTTP/1.1 200 OK
+Content-Length:9170094
+
+2020-06-06 19:49:44.973882 [info]: request:HTTP/1.1 200 OK
+Content-Length:9170094
+Connection:keep-alive
+
+2020-06-06 19:49:44.973897 [info]: request:HTTP/1.1 200 OK
+Content-Length:9170094
+Connection:keep-alive
+
+
+2020-06-06 19:49:45.005944 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:45.006001 [info]: adjust timer once
+2020-06-06 19:49:45.048750 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:45.048826 [info]: adjust timer once
+2020-06-06 19:49:45.063365 [info]: send data to the client(127.0.0.1)
+2020-06-06 19:49:45.063413 [info]: adjust timer once
+2020-06-06 19:49:49.761848 [info]: timer tick
+2020-06-06 19:49:54.762103 [info]: timer tick
+2020-06-06 19:49:59.762253 [info]: timer tick
+2020-06-06 19:50:04.762381 [info]: timer tick
+2020-06-06 19:50:04.762491 [info]: close fd 16
+2020-06-06 21:20:44.358408 [info]: timer tick
+2020-06-06 21:20:49.359450 [info]: timer tick
+2020-06-06 21:20:54.359780 [info]: timer tick
+2020-06-06 21:20:59.359927 [info]: timer tick
+2020-06-06 21:20:59.360147 [info]: close fd 16
+2020-06-06 21:20:59.360679 [info]: close fd 17
