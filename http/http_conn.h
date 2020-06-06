@@ -108,22 +108,32 @@ private:
     HTTP_CODE parse_request_line(char *text);
     //分析头部字段
     HTTP_CODE parse_headers(char *text);
-    //分析请求行的入口函数
+    ////没有真正解析HTTP请求的消息体，只是判断他是否被完整的读入
     HTTP_CODE parse_content(char *text);
     
     HTTP_CODE do_request();
     char *get_line() { return m_read_buf + m_start_line; };
+    //从状态机，用于分析出一行内容
+//返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
     LINE_STATUS parse_line();
 
     //下面一组函数被process_write调用以填充HTTP应答
     void unmap();
+    //往缓冲区写入待发送的数据
     bool add_response(const char *format, ...);
+    //报文主体（消息体）
     bool add_content(const char *content);
+    //响应报文的状态行：版本+状态码+短语+CRLF，status状态码
     bool add_status_line(int status, const char *title);
+    //响应报文首部字段
     bool add_headers(int content_length);
+    //响应报文首部的内容类型
     bool add_content_type();
+    //响应报文首部字段，内容长度
     bool add_content_length(int content_length);
+    //首部字段：m_linger:HTTP的请求保持连接
     bool add_linger();
+    //首部字段加入空白行
     bool add_blank_line();
 
 public:

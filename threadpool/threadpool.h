@@ -30,7 +30,7 @@ private:
     locker m_queuelocker;       //保护请求队列的互斥锁
     sem m_queuestat;            //是否有任务需要处理
     bool m_stop;                //是否结束线程
-    connection_pool *m_connPool;  //数据库
+    connection_pool *m_connPool;  //数据库连接池
 };
 template <typename T>
 threadpool<T>::threadpool( connection_pool *connPool, int thread_number, int max_requests) : m_thread_number(thread_number), m_max_requests(max_requests), m_stop(false), m_threads(NULL),m_connPool(connPool)
@@ -43,11 +43,14 @@ threadpool<T>::threadpool( connection_pool *connPool, int thread_number, int max
     for (int i = 0; i < thread_number; ++i)
     {
         //printf("create the %dth thread\n",i);
+        //循环创建线程，并将工作线程按要求进行运行
         if (pthread_create(m_threads + i, NULL, worker, this) != 0)
         {
             delete[] m_threads;
             throw std::exception();
         }
+        //将线程进行分离后，不用单独对工作线程进行回收
+        //pthread_detach:不会引起线程终止或进入阻塞，也可以销毁线程创建内存空间
         if (pthread_detach(m_threads[i]))
         {
             delete[] m_threads;
@@ -62,6 +65,9 @@ threadpool<T>::~threadpool()
     m_stop = true;
 }
 template <typename T>
+/*
+通过list容器创建请求队列，向队列中添加时，通过互斥锁保证线程安全，添加完成后通过信号量提醒有任务要处理，最后注意线程同步
+*/
 bool threadpool<T>::append(T *request)
 {
     m_queuelocker.lock();

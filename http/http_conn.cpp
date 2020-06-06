@@ -7,10 +7,10 @@
 //同步校验
 #define SYNSQL
 
-//CGI多进程使用链接池
+////CGI多进程登录校验,用连接池
 //#define CGISQLPOOL
 
-//CGI多进程不用连接池
+//CGI多进程登录校验,不用连接池
 //#define CGISQL
 
 //#define ET       //边缘触发非阻塞
@@ -35,7 +35,7 @@ map<string, string> users;
 
 #ifdef SYNSQL
 
-
+//同步数据库校验
 void http_conn::initmysql_result(connection_pool *connPool)
 {
     //先从连接池中取一个连接
@@ -70,7 +70,7 @@ void http_conn::initmysql_result(connection_pool *connPool)
 #endif
 
 #ifdef CGISQLPOOL
-
+//CGI数据库校验
 void http_conn::initresultFile(connection_pool *connPool)
 {
     //写操作
@@ -233,11 +233,12 @@ void http_conn::init()
     memset(m_real_file, '\0', FILENAME_LEN);
 }
 
-//从状态机，用于分析出一行内容
+//从状态机，用于解析出一行内容
 //返回值为行的读取状态，有LINE_OK,LINE_BAD,LINE_OPEN
 http_conn::LINE_STATUS http_conn::parse_line()
 {
     char temp;
+    //m_checked_idx：当前正在分析的字符在读缓冲区中的位置
     for (; m_checked_idx < m_read_idx; ++m_checked_idx)
     {
         temp = m_read_buf[m_checked_idx];
@@ -253,8 +254,10 @@ http_conn::LINE_STATUS http_conn::parse_line()
                 m_read_buf[m_checked_idx++] = '\0';
                 return LINE_OK;
             }
+            //否则HTTP客户发送的数据存在语法错误
             return LINE_BAD;
         }
+        //如果当前的字符是”\n"，即回车符，则可能读到一个完整的行
         else if (temp == '\n')
         {
             if (m_checked_idx > 1 && m_read_buf[m_checked_idx - 1] == '\r')
@@ -291,7 +294,7 @@ bool http_conn::read_once()
         {
             return false;
         }
-        m_read_idx += bytes_read;
+        m_read_idx += bytes_read;//m_read_idx:标识读缓冲区中已经读入的客户数据的最后一个字节的下一个位置
     }
     return true;
 }
@@ -299,6 +302,10 @@ bool http_conn::read_once()
 //解析http请求行，获得请求方法，目标url及http版本号
 http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
 {
+    /*
+    char *strpbrk(const char *str1, const char *str2) 
+    检验字符串 str1 中的字符，当被检验字符在字符串 str2 中也包含时，则停止检验，并返回该字符位置
+    */
     m_url = strpbrk(text, " \t");
     if (!m_url)
     {
@@ -311,16 +318,24 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     else if (strcasecmp(method, "POST") == 0)
     {
         m_method = POST;//HTTP请求采用POST方式
-        cgi = 1;
+        cgi = 1;//是否启用的POST
     }
     else
         return BAD_REQUEST;
+    //size_t strspn(const char *str1, const char *str2) 检索字符串 str1 中第一个不在字符串 str2 中出现的字符下标
     m_url += strspn(m_url, " \t");
     m_version = strpbrk(m_url, " \t");
     if (!m_version)
         return BAD_REQUEST;
     *m_version++ = '\0';
     m_version += strspn(m_version, " \t");
+    /*
+    strcasecmp() 函数比较两个字符串
+    =0 : 如果两个字符串相等
+    <0 : 如果 string1 小于 string2
+    >0 : 如果 string1 大于 string2
+
+    */
     if (strcasecmp(m_version, "HTTP/1.1") != 0)
         return BAD_REQUEST;
     if (strncasecmp(m_url, "http://", 7) == 0)
@@ -332,7 +347,7 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     if (strncasecmp(m_url, "https://", 8) == 0)
     {
         m_url += 8;
-        //在参数 str 所指向的字符串中搜索第一次出现字符 c（一个无符号字符）的位置
+        //char *strchr(const char *str, int c) 在参数 str 所指向的字符串中搜索第一次出现字符 c（一个无符号字符）的位置
         m_url = strchr(m_url, '/');
     }
 
@@ -342,7 +357,8 @@ http_conn::HTTP_CODE http_conn::parse_request_line(char *text)
     if (strlen(m_url) == 1)
         strcat(m_url, "judge.html");
     m_check_state = CHECK_STATE_HEADER;
-    return NO_REQUEST;
+    return NO_REQUEST;//HTTP请求报文不完整，继续读取数据
+
 }
 
 //解析http请求的一个头部信息
@@ -350,6 +366,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text)
 {
     if (text[0] == '\0')
     {
+        //请求报文实体主体长度为0
         if (m_content_length != 0)
         {
             m_check_state = CHECK_STATE_CONTENT;
@@ -360,6 +377,7 @@ http_conn::HTTP_CODE http_conn::parse_headers(char *text)
     else if (strncasecmp(text, "Connection:", 11) == 0)
     {
         text += 11;
+        //检索字符串 str1 中第一个不在字符串 str2 中出现的字符下标
         text += strspn(text, " \t");
         if (strcasecmp(text, "keep-alive") == 0)
         {
@@ -394,28 +412,35 @@ http_conn::HTTP_CODE http_conn::parse_content(char *text)
     {
         text[m_content_length] = '\0';
         //POST请求中最后为输入的用户名和密码
-        m_string = text;
+        m_string = text;//存储请求报文的实体主体
         return GET_REQUEST;
     }
     return NO_REQUEST;
 }
 
-//主状态机，服务器处理HTTP的请求结果
+//服务器处理HTTP的请求结果
 http_conn::HTTP_CODE http_conn::process_read()
 {
     LINE_STATUS line_status = LINE_OK;//记录当前的读取状态
     HTTP_CODE ret = NO_REQUEST;//记录HTTP请求的处理结果
     char *text = 0;
 
+    //CHECK_STATE_CONTENT:请求报文消息体的状态
+    //知道读取完整一行或主状态机所处状态为CHECK_STATE_CONTENT
     while ((m_check_state == CHECK_STATE_CONTENT && line_status == LINE_OK) || ((line_status = parse_line()) == LINE_OK))
     {
         //char *get_line() { return m_read_buf + m_start_line; };
         //m_start_line：当前正在解析行的起始位置
         text = get_line();
+
+        //m_checked_idx：当前正在分析的字符在读缓冲区中的位置
+        //m_checked_idx：在parse_line()函数中for遍历增加 
         m_start_line = m_checked_idx;
         LOG_INFO("%s", text);
         Log::get_instance()->flush();
-        //m_check_state:主状态机当前的状态
+
+
+        //m_check_state:主状态机当前的状态，init()初始化，默认分析请求行
         switch (m_check_state)
         {
         case CHECK_STATE_REQUESTLINE:
@@ -430,7 +455,7 @@ http_conn::HTTP_CODE http_conn::process_read()
             ret = parse_headers(text);
             if (ret == BAD_REQUEST)
                 return BAD_REQUEST;
-            else if (ret == GET_REQUEST)
+            else if (ret == GET_REQUEST)////请求报文实体主体长度为0
             {
                 return do_request();
             }
@@ -439,13 +464,13 @@ http_conn::HTTP_CODE http_conn::process_read()
         case CHECK_STATE_CONTENT:
         {
             ret = parse_content(text);
-            if (ret == GET_REQUEST)
+            if (ret == GET_REQUEST)//获取了完整请求报文
                 return do_request();
             line_status = LINE_OPEN;
             break;
         }
         default:
-            return INTERNAL_ERROR;
+            return INTERNAL_ERROR;//服务器内部错误
         }
     }
     return NO_REQUEST;
@@ -459,7 +484,9 @@ http_conn::HTTP_CODE http_conn::do_request()
     strcpy(m_real_file, doc_root);
     int len = strlen(doc_root);
     //printf("m_url:%s\n", m_url);
-    //char *strrchr(const char *str, int c) 在参数 str 所指向的字符串中搜索最后一次出现字符 c（一个无符号字符）的位置
+    /*
+    char *strrchr(const char *str, int c) 在参数 str 所指向的字符串中搜索最后一次出现字符 c（一个无符号字符）的位置
+*/
     const char *p = strrchr(m_url, '/');
 
     //处理cgi
@@ -504,7 +531,7 @@ http_conn::HTTP_CODE http_conn::do_request()
             strcat(sql_insert, "', '");
             strcat(sql_insert, password);
             strcat(sql_insert, "')");
-
+            
             if (users.find(name) == users.end())
             {
 
@@ -515,11 +542,13 @@ http_conn::HTTP_CODE http_conn::do_request()
                 pthread_mutex_unlock(&lock);
 
                 if (!res)
+                    //查找到res为0，登录
                     strcpy(m_url, "/log.html");
                 else
+                    //查找到res为1，注册
                     strcpy(m_url, "/registerError.html");
             }
-            else
+            else//被注册了
                 strcpy(m_url, "/registerError.html");
         }
         //如果是登录，直接判断
@@ -534,7 +563,7 @@ http_conn::HTTP_CODE http_conn::do_request()
 #endif
 
 
-//CGI用连接池,注册在父进程,登录在子进程
+//CGI多进程登录校验,用连接池,注册在父进程,登录在子进程
 #ifdef CGISQLPOOL
 
         //注册
@@ -626,8 +655,8 @@ http_conn::HTTP_CODE http_conn::do_request()
                 waitpid(pid, NULL, 0);
             }
         }
-
 #endif
+
 
 //CGI多进程登录校验,不用数据库连接池
 //子进程完成注册和登录
@@ -693,6 +722,8 @@ http_conn::HTTP_CODE http_conn::do_request()
             waitpid(pid, NULL, 0);
         }
 #endif
+
+
     }
 
     if (*(p + 1) == '0')
@@ -749,6 +780,8 @@ http_conn::HTTP_CODE http_conn::do_request()
     close(fd);
     return FILE_REQUEST;
 }
+
+
 void http_conn::unmap()
 {
     if (m_file_address)
@@ -844,7 +877,7 @@ bool http_conn::add_status_line(int status, const char *title)
     return add_response("%s %d %s\r\n", "HTTP/1.1", status, title);
 }
 
-//响应报文消息体
+//响应报文首部字段
 bool http_conn::add_headers(int content_len)
 {
     add_content_length(content_len);
@@ -852,7 +885,7 @@ bool http_conn::add_headers(int content_len)
     add_blank_line();
 }
 
-//响应报文状态行
+//响应报文首部字段，内容长度
 bool http_conn::add_content_length(int content_len)
 {
     return add_response("Content-Length:%d\r\n", content_len);

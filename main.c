@@ -21,7 +21,7 @@
 #define TIMESLOT 5             //最小超时单位
 
 //条件编译
-#define SYNSQL //同步数据库校验
+#define SYNSQL          //同步数据库校验
 //#define CGISQLPOOL    //CGI数据库校验
 #define SYNLOG //同步写日志
 //#define ASYNLOG       //异步写日志
