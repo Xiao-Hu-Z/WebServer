@@ -7,12 +7,6 @@
 //同步校验
 #define SYNSQL
 
-////CGI多进程登录校验,用连接池
-//#define CGISQLPOOL
-
-//CGI多进程登录校验,不用连接池
-//#define CGISQL
-
 //#define ET       //边缘触发非阻塞
 #define LT         //水平触发阻塞
 
@@ -69,44 +63,6 @@ void http_conn::initmysql_result(connection_pool *connPool)
 
 #endif
 
-#ifdef CGISQLPOOL
-//CGI数据库校验
-void http_conn::initresultFile(connection_pool *connPool)
-{
-    //写操作
-    ofstream out("./CGImysql/id_passwd.txt");
-    //先从连接池中取一个连接
-    MYSQL *mysql = NULL;
-    connectionRAII mysqlcon(&mysql, connPool);
-
-    //在user表中检索username，passwd数据，浏览器端输入
-    if (mysql_query(mysql, "SELECT username,passwd FROM user"))
-    {
-        LOG_ERROR("SELECT error:%s\n", mysql_error(mysql));
-    }
-
-    //从表中检索完整的结果集
-    MYSQL_RES *result = mysql_store_result(mysql);
-
-    //返回结果集中的列数
-    int num_fields = mysql_num_fields(result);
-
-    //返回所有字段结构的数组
-    MYSQL_FIELD *fields = mysql_fetch_fields(result);
-
-    //从结果集中获取下一行，将对应的用户名和密码，存入map中
-    while (MYSQL_ROW row = mysql_fetch_row(result))
-    {
-        string temp1(row[0]);
-        string temp2(row[1]);
-        out << temp1 << " " << temp2 << endl;
-        users[temp1] = temp2;
-    }
-
-    out.close();
-}
-
-#endif
 
 //对文件描述符设置非阻塞
 int setnonblocking(int fd)
@@ -832,7 +788,7 @@ bool http_conn::process_write(HTTP_CODE ret)
     default:
         return false;
     }
-    //响应报文没有消息实体
+    //没有请求目标文件，状态行+首部字段+实体主体写入一个缓存区
     m_iv[0].iov_base = m_write_buf;
     m_iv[0].iov_len = m_write_idx;
     m_iv_count = 1;

@@ -22,8 +22,8 @@
 
 //条件编译
 #define SYNSQL          //同步数据库校验
-//#define CGISQLPOOL    //CGI数据库校验
-#define SYNLOG //同步写日志
+
+#define SYNLOG          //同步写日志
 //#define ASYNLOG       //异步写日志
 
 //#define ET            //边缘触发非阻塞
@@ -138,12 +138,7 @@ int main(int argc, char *argv[])
     users->initmysql_result(connPool);
 #endif
 
-#ifdef CGISQLPOOL
-    //初始化数据库读取表
-    users->initresultFile(connPool);
-#endif
 
- 
     int listenfd = socket(PF_INET, SOCK_STREAM, 0);
     assert(listenfd >= 0);
 
